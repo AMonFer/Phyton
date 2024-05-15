@@ -1,0 +1,17 @@
+%*
+Olvidala mejor olvidala
+Arrancala de ti
+Y busca otra ilusion
+*%
+
+
+
+if(c == 0)
+{
+    %esto es un comentario
+    printf("Probando");
+} %*
+
+TODO ESTO DEBE DESAPARECER
+
+*%
