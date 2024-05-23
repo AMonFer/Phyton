@@ -20,7 +20,7 @@ def preprocess(txt_filepath):
                             adding = True
 
                 elif adding:
-                    if line[i] != " " or line[i] != "\t" or line[i] != "\n":
+                    if line[i] != " " and line[i] != "\t" and line[i] != "\n":
                         result += line[i]
 
             #if len(result) > 0 and result[-1] != "\n":
