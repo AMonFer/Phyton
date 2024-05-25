@@ -1,4 +1,3 @@
-from abc import abstractmethod
 import string
 
 
@@ -7,5 +6,5 @@ class Token:
         self.name = name
         self.value = value
 
-    def TokenType(self):
+    def token_type(self):
         print(f"This is a {self.name} token with value {self.value}")

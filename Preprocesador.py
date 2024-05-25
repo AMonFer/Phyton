@@ -23,7 +23,7 @@ def preprocess(txt_filepath):
                     if line[i] != " " and line[i] != "\t" and line[i] != "\n":
                         result += line[i]
 
-            #if len(result) > 0 and result[-1] != "\n":
+            # if len(result) > 0 and result[-1] != "\n":
             #    result += "\n"
 
     return result.strip()
