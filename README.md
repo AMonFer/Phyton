@@ -33,8 +33,11 @@ Ejemplo: red suma(int a, int b) { return a + b; }
 ch: Representa una cadena de caracteres (similar a string en otros lenguajes).
 
 Ejemplo: ch saludo = "Hola Mundo";
-Palabras Reservadas
-Las palabras reservadas son identificadores que tienen un significado especial en el lenguaje y no pueden ser utilizados para otros propósitos, como nombres de variables o funciones. A continuación, se detallan las palabras reservadas de nuestro lenguaje:
+
+
+Las palabras reservadas no pueden ser utilizadas para otros propósitos, 
+como nombres de variables o funciones. A continuación, se detallan las palabras reservadas 
+de nuestro lenguaje:
 
 clib: Se utiliza para definir una función.
 
