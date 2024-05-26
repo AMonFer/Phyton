@@ -7,10 +7,13 @@ Y busca otra ilusion
 int c = 0;
 ing a;
 
+gem res;
+
 acsi(c == 0)
 {
     %esto es un comentario
     a = 'c';
+    res = 1.;
 } %*
 
 TODO ESTO DEBE DESAPARECER

@@ -17,10 +17,12 @@ numeros = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 
 simbolos = [';', ',', '(', ')', '{', '}']
 
-operadores = ['*', '-', '/', '+', '%', '=']
+operadores = ["*", "-", "/", "+", "mod", "=", "++", "--"]
+
+comparadores = [">", "<", "==", "<=", ">=", "!="]
 
 
-def AutomataSimbolos(texto: string):
+def automata_simbolos(texto: string):
     if len(texto) == 0:
         return None, texto
 
@@ -30,25 +32,34 @@ def AutomataSimbolos(texto: string):
         return None, texto
 
 
-def AutomataOperadores(texto: string):
+def automata_operadores_comparadores(texto: string, token_type: string):
+    lista_opciones = []
+
+    if token_type == "Operator":
+        lista_opciones = operadores
+    elif token_type == "Comparison":
+        lista_opciones = comparadores
+
     if len(texto) == 0:
         return None, texto
 
-    if len(texto) > 1:
-        if texto[:2] == "==":
-            return Token("Operator", texto[:2]), texto[2::]
+    token, value = None, ""
 
-    if texto[0] in operadores:
-        return Token("Operator", texto[0]), texto[1::]
-    else:
-        return None, texto
+    for operator in lista_opciones:
+        operator_length = len(operator)
+        if texto[:operator_length] == operator:
+            value = texto[:operator_length]
+            token = Token(token_type, value)
+            break
+
+    return token, texto[len(value)::]
 
 
-def AutomataPalabrasRes(i: int, texto: string):
+def automata_palabras_res(i: int, texto: string):
     if len(texto) == 0:
         return None, texto
 
-    type = "Datatype" if i in range(1, 5) else "Keyword"
+    token_type = "Datatype" if i in range(1, 5) else "Keyword"
 
     palabra = palabrasReservadas[i]
     tam = len(palabra)
@@ -61,13 +72,13 @@ def AutomataPalabrasRes(i: int, texto: string):
         else:
             break
     if len(palabra) == 0:
-        #return Token("Datatype", palabrasReservadas[i]), texto[tam::]
-        return Token(type, palabrasReservadas[i]), texto[tam::]
+        # return Token("Datatype", palabrasReservadas[i]), texto[tam::]
+        return Token(token_type, palabrasReservadas[i]), texto[tam::]
 
     return None, texto
 
 
-def AutomataIng(texto: string):
+def automata_ing(texto: string):
     if len(texto) == 0:
         return None, texto
 
@@ -81,7 +92,7 @@ def AutomataIng(texto: string):
     return None, texto
 
 
-def AutomataCH(texto: string):
+def automata_ch(texto: string):
     if len(texto) == 0:
         return None, texto
 
@@ -104,25 +115,41 @@ def AutomataCH(texto: string):
     return None, texto
 
 
-def AutomataNum(numero):
+def automata_num(numero):
     if len(numero) == 0:
         return None, numero
 
-    aux = True
+    dot_found = False
+    reading_numbers = False
     digits = ""
     for i in numero:
         if i not in numeros:
+            if i == ".":
+                if not dot_found:
+                    dot_found = True
+                    if len(digits) == 0:
+                        digits = "0"
+                        reading_numbers = True
+                    digits += i
+                    continue
+                else:
+                    raise NotImplementedError() # raise exception when two dots(.) are found, i.e. 2.453.1
             break
         else:
             digits += i
-            aux = False
-    if not aux:
-        return Token("Ordo", digits), numero[len(digits)::]
+            reading_numbers = True
+    if reading_numbers:
+        if dot_found:
+            if digits[-1] == ".":
+                return Token("Geminus", digits + '0'), numero[len(digits)::]
+            return Token("Geminus", digits), numero[len(digits)::]
+
+        return Token("Integer", digits), numero[len(digits)::]
     else:
         return None, numero
 
 
-def AutomataIdentifier(texto):
+def automata_identifier(texto):
     if len(texto) == 0:
         return None, texto
 
@@ -139,14 +166,14 @@ def AutomataIdentifier(texto):
     return None, texto
 
 
-def GetTokens(text: string):
+def get_tokens(text: string):
     # Lista de todos los tokens
     tokens = []
     num_keywrds = len(palabrasReservadas)
     while len(text) > 0:
         found = False
         for i in range(1, num_keywrds+1):
-            token, texto = AutomataPalabrasRes(i, text)
+            token, texto = automata_palabras_res(i, text)
 
             if token is not None:
                 tokens.append(token)
@@ -155,47 +182,53 @@ def GetTokens(text: string):
                 break
 
         if found:
-            found = False
             continue
 
-        #print(f"current text: {text}")
+        # print(f"current text: {text}")
 
-        token, texto = AutomataOperadores(text)
+        token, texto = automata_operadores_comparadores(text, "Comparison")
 
         if token is not None:
             tokens.append(token)
             text = texto
             continue
 
-        token, texto = AutomataSimbolos(text)
+        token, texto = automata_operadores_comparadores(text, "Operator")
 
         if token is not None:
             tokens.append(token)
             text = texto
             continue
 
-        token, texto = AutomataIng(text)
+        token, texto = automata_simbolos(text)
 
         if token is not None:
             tokens.append(token)
             text = texto
             continue
 
-        token, texto = AutomataCH(text)
+        token, texto = automata_ing(text)
 
         if token is not None:
             tokens.append(token)
             text = texto
             continue
 
-        token, texto = AutomataNum(text)
+        token, texto = automata_ch(text)
 
         if token is not None:
             tokens.append(token)
             text = texto
             continue
 
-        token, texto = AutomataIdentifier(text)
+        token, texto = automata_num(text)
+
+        if token is not None:
+            tokens.append(token)
+            text = texto
+            continue
+
+        token, texto = automata_identifier(text)
 
         if token is not None:
             tokens.append(token)
