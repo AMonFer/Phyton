@@ -1,51 +1,35 @@
-import string
-from Tokens import Token
-
-# todos los caracteres reconocidos
-identificadores = string.ascii_lowercase + string.ascii_uppercase
-
-# diccionario de palabras reservadas:
-# Values from 1 to 4 are be Datatypes
-
-# 1-int, 2-double, 3-char, 4-void, 5-return, 6-funcion, 7-for, 8-while, 9-break, 10-and, 11-or, 12-if : ac si, 13-elif : alium si, 14-else,
-# 15-verdad, 16-falso, 17-chorda: string
-palabrasReservadas = {1: "int", 2: "gem", 3: "ing", 4: "inan", 5: "red", 6: "clib", 7: "quia", 8: "dum", 9: "finis",
-                      10: "et", 11: "vel", 12: "acsi", 13: "aliumsi", 14: "alium", 15: "verus", 16: "falsus",
-                      17: "ch"}
-
-numeros = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
-
-simbolos = [';', ',', '(', ')', '{', '}']
-
-operadores = ["*", "-", "/", "+", "mod", "=", "++", "--"]
-
-comparadores = [">", "<", "==", "<=", ">=", "!="]
+from Token import Token
+from LanguageSymbols import *
 
 
-def automata_simbolos(texto: string):
+def automata_symbols(texto: string):
     if len(texto) == 0:
         return None, texto
 
-    if texto[0] in simbolos:
+    if texto[0] in symbols:
         return Token("Symbol", texto[0]), texto[1::]
     else:
         return None, texto
 
 
-def automata_operadores_comparadores(texto: string, token_type: string):
-    lista_opciones = []
+def automata_operators_comparisons_assignments(texto: string, token_type: string):
+    list_options = []
 
-    if token_type == "Operator":
-        lista_opciones = operadores
+    if token_type == "Binary Operator":
+        list_options = binary_operators
+    elif token_type == "Unary Operator":
+        list_options = unary_operators
     elif token_type == "Comparison":
-        lista_opciones = comparadores
+        list_options = comparadores
+    elif token_type == "Assignment":
+        list_options = assignments
 
     if len(texto) == 0:
         return None, texto
 
     token, value = None, ""
 
-    for operator in lista_opciones:
+    for operator in list_options:
         operator_length = len(operator)
         if texto[:operator_length] == operator:
             value = texto[:operator_length]
@@ -59,7 +43,7 @@ def automata_palabras_res(i: int, texto: string):
     if len(texto) == 0:
         return None, texto
 
-    token_type = "Datatype" if i in range(1, 5) else "Keyword"
+    token_type = "Datatype" if i in range(1, 6) else "Keyword"
 
     palabra = palabrasReservadas[i]
     tam = len(palabra)
@@ -72,7 +56,6 @@ def automata_palabras_res(i: int, texto: string):
         else:
             break
     if len(palabra) == 0:
-        # return Token("Datatype", palabrasReservadas[i]), texto[tam::]
         return Token(token_type, palabrasReservadas[i]), texto[tam::]
 
     return None, texto
@@ -123,7 +106,7 @@ def automata_num(numero):
     reading_numbers = False
     digits = ""
     for i in numero:
-        if i not in numeros:
+        if i not in numbers:
             if i == ".":
                 if not dot_found:
                     dot_found = True
@@ -133,7 +116,7 @@ def automata_num(numero):
                     digits += i
                     continue
                 else:
-                    raise NotImplementedError() # raise exception when two dots(.) are found, i.e. 2.453.1
+                    raise NotImplementedError()  # raise exception when two dots(.) are found, i.e. 2.453.1
             break
         else:
             digits += i
@@ -169,10 +152,10 @@ def automata_identifier(texto):
 def get_tokens(text: string):
     # Lista de todos los tokens
     tokens = []
-    num_keywrds = len(palabrasReservadas)
+    num_keywords = len(palabrasReservadas)
     while len(text) > 0:
         found = False
-        for i in range(1, num_keywrds+1):
+        for i in range(1, num_keywords+1):
             token, texto = automata_palabras_res(i, text)
 
             if token is not None:
@@ -184,23 +167,35 @@ def get_tokens(text: string):
         if found:
             continue
 
-        # print(f"current text: {text}")
-
-        token, texto = automata_operadores_comparadores(text, "Comparison")
+        token, texto = automata_operators_comparisons_assignments(text, "Unary Operator")
 
         if token is not None:
             tokens.append(token)
             text = texto
             continue
 
-        token, texto = automata_operadores_comparadores(text, "Operator")
+        token, texto = automata_operators_comparisons_assignments(text, "Comparison")
 
         if token is not None:
             tokens.append(token)
             text = texto
             continue
 
-        token, texto = automata_simbolos(text)
+        token, texto = automata_operators_comparisons_assignments(text, "Assignment")
+
+        if token is not None:
+            tokens.append(token)
+            text = texto
+            continue
+
+        token, texto = automata_operators_comparisons_assignments(text, " Binary Operator")
+
+        if token is not None:
+            tokens.append(token)
+            text = texto
+            continue
+
+        token, texto = automata_symbols(text)
 
         if token is not None:
             tokens.append(token)

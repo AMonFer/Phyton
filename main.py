@@ -4,6 +4,7 @@
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 from Preprocesador import preprocess
 from Automatas import get_tokens
+from Parser import temporal_parser
 
 
 # Press the green button in the gutter to run the script.
@@ -17,5 +18,6 @@ if __name__ == '__main__':
         token.token_type()
         # print(f"token name: {token.name} - token value: {token.value}")
 
-# See PyCharm help at https://www.jetbrains.com/help/p
+    temporal_parser(tokens)
 
+# See PyCharm help at https://www.jetbrains.com/help/p
