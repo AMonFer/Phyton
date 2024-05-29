@@ -1,6 +1,3 @@
-# % comentario una linea
-# %**% comentario varias lineas
-
 def preprocess(txt_filepath):
     result = ""
     adding = True
@@ -22,8 +19,5 @@ def preprocess(txt_filepath):
                 elif adding:
                     if line[i] != " " and line[i] != "\t" and line[i] != "\n":
                         result += line[i]
-
-            # if len(result) > 0 and result[-1] != "\n":
-            #    result += "\n"
 
     return result.strip()
