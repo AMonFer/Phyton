@@ -29,4 +29,58 @@ def find_production_as_option(production_to_look_for, production_to_look_in):
 
 
 def get_follow(production):
-    pass
+    resultados = []
+    for p in productions:
+        lista_prod = find_production_as_option(production, p)
+        for prod in lista_prod:
+            place = 1
+            while True:
+                aux = prod.get_place(place)
+                if aux is not None:
+                    valor, alternativas, terminal = aux
+                    if terminal == "p":
+                        if valor == production:
+                            pr = prod.get_place(place+1)
+
+                            if pr is None:
+                                resultados += get_follow(prod)
+                            else:
+                                val, alt, term = pr
+                                if term == "t":
+                                    resultados.append(val)
+                                else:
+                                    resultados += get_first(val)
+                        else:
+                            for a in alternativas:
+                                if a == production:
+                                    pr = prod.get_place(place + 1)
+
+                                    if pr is None:
+                                        resultados += get_follow(prod)
+                                    else:
+                                        val, alt, term = pr
+                                        if term == "t":
+                                            resultados.append(val)
+                                        else:
+                                            resultados += get_first(val)
+                    else:
+                        resultados.append(valor)
+                else:
+                    break
+
+                place += 1
+    return resultados
+
+
+
+
+
+
+
+
+
+
+
+
+
+
