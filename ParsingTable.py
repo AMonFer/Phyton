@@ -22,10 +22,23 @@ def find_production_as_option(production_to_look_for, production_to_look_in):
     place = 1
     result = []
     while True:
-        main_option, alternatives, type_of_value = production_to_look_in.get_place(place)
+        result_get_place = production_to_look_in.get_place(place)
+        if result_get_place is None:
+            break
+
+        main_option, alternatives, type_of_value = result_get_place
+
         if type_of_value == "p":
             if main_option == production_to_look_for:
-                next_option, next_alternatives, type_of_value = production_to_look_in.get_place(place+1)
+                result.append(main_option)
+        if alternatives is None:
+            place += 1
+            continue
+        for alternative in alternatives:
+            if alternative == production_to_look_for:
+                result.append(alternative)
+        place += 1
+    return result
 
 
 def get_follow(production):
