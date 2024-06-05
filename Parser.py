@@ -1,18 +1,5 @@
 from LanguageTokens import *
-
-# Productions
-productions = {"Declaration": [("Datatype", "Declaration1")],
-               "Declaration1": ["Assignment", ("Identifier", SemiColon)],
-               "Assignment": [("Identifier", "Assignment1", "Expression", SemiColon)],
-               "Assignment1": [NormalAssignment, IncrementAssignment, DecrementAssignment],
-               "Expression": [("Value", "UnaryOperator"), ("Value", "Expression1"), "Value"],
-               "Expression1": [("BinaryOperator", "Value", "Expression1"), ("BinaryOperator", "Value")],
-               "UnaryOperator": [IncrementOperator, DecrementOperator],
-               "BinaryOperator": [AdditionOperator, SubtractionOperator,
-                                  MultiplicationOperator, DivisionOperator,
-                                  ModuleOperator],
-               "Value": ["Integer", "Geminus", "Ingenium", "Chorda"]
-               }
+from LanguageProductions import *
 
 
 def get_tokens_until_token(tokens, ref_token):
