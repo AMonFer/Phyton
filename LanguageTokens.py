@@ -2,7 +2,7 @@ from Token import Token
 
 # Symbols
 SemiColon = Token("Symbol", ';')
-Coma = Token("Symbol", ',')
+Coma = Token("Symbol",  ',')
 
 OpenParenthesis = Token("Symbol", '(')
 CloseParenthesis = Token("Symbol", ')')

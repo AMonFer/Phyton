@@ -17,14 +17,17 @@ class Production:
     def __place_exists_in_terminals(self, place: int):
         if self.terminals is None:
             return False
-        return any([p == place for p, _ in self.terminals])
+        return any([p == place for p, _, _ in self.terminals])
 
     def __place_exists_in_non_terminals(self, place: int):
         if self.non_terminals is None:
             return False
-        return any([p == place for p, _ in self.non_terminals])
+        return any([p == place for p, _, _ in self.non_terminals])
 
     def add_terminal(self, terminal, place: int, *args):
+        if self.terminals is None:
+            self.terminals = []
+
         if self.__place_exists_in_terminals(place):
             raise NotImplementedError()  # Raise exception when place already exists
 
@@ -37,6 +40,9 @@ class Production:
             self.terminals.append((place, terminal, args))
 
     def add_non_terminal(self, non_terminal, place: int, *args):
+        if self.non_terminals is None:
+            self.non_terminals = []
+
         if self.__place_exists_in_non_terminals(place):
             raise NotImplementedError()  # Raise exception when place already exists
 
@@ -60,3 +66,9 @@ class Production:
                     return non_terminal, alternative, "p"
 
         return
+
+    def __eq__(self, other):
+        if isinstance(other, Production):
+            return self.name == other.name
+
+        raise NotImplementedError() # raise when not comparing with a Production

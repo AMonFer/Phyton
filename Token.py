@@ -19,3 +19,5 @@ class Token:
             return other == self.name
         else:
             raise NotImplementedError()  # raise exception when other is not a Token or a string
+
+
