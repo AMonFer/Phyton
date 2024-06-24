@@ -8,7 +8,7 @@ from LanguageTokens import (
 from lr1 import construct_lr1_automaton, construct_parsing_table, parse
 
 # Conversión de producciones a formato esperado por el autómata LR(1)
-productions = {
+productionsLr1 = {
     'S\'': [('S',)],  # Augmented start symbol
     'S': [('Declaration',)],
     'Declaration': [('Datatype', 'Declaration1')],
@@ -22,13 +22,13 @@ productions = {
     'Value': [('Integer',), ('Geminus',), ('Ingenium',), ('Chorda',)]
 }
 
-# Construcción del autómata LR(1)
-state_map, transitions, states = construct_lr1_automaton(productions)
-
-# Construcción de la tabla de análisis sintáctico
-parsing_table, accepting_state = construct_parsing_table(productions, state_map, transitions, states)
-
-# Ejemplo de uso
 input_string = 'Datatype Identifier = Integer ;'  # Ejemplo de cadena de entrada
-result = parse(input_string, parsing_table, accepting_state)
-print("Cadena aceptada." if result else "Cadena no aceptada.")
+def ParsearLR1(input_string):
+
+    state_map, transitions, states = construct_lr1_automaton(productionsLr1)
+
+    parsing_table, accepting_state = construct_parsing_table(productionsLr1, state_map, transitions, states)
+
+    result = parse(input_string, parsing_table, accepting_state)
+    print("Cadena aceptada." if result else "Cadena no aceptada.")
+    return "Cadena aceptada." if result else "Cadena no aceptada."

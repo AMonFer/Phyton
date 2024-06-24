@@ -79,7 +79,7 @@ def construct_parsing_table(productions, state_map, transitions, states):
                         parsing_table[(state_index, next_symbol)] = ('GOTO', next_state)
                     else:
                         parsing_table[(state_index, next_symbol)] = ('SHIFT', next_state)
-    print(parsing_table)
+    
     return parsing_table, accepting_state
 
 def parse(input_string, parsing_table, accepting_state):
