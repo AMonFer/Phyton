@@ -17,7 +17,10 @@ def preprocess(txt_filepath):
                             adding = True
 
                 elif adding:
-                    if line[i] != " " and line[i] != "\t" and line[i] != "\n":
-                        result += line[i]
+                    if line[i] != "\t":
+                        if line[i] == "\n":
+                            result += " "
+                        else:
+                            result += line[i]
 
     return result.strip()

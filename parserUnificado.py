@@ -2,7 +2,7 @@
 from ChainOfResp import *
 
 
-def parserUnificado():
+def parserUnificado(input_string):
 # Set up the chain
     handler = Handler()
     ll1_parser = LL1Parser(handler)
@@ -15,11 +15,11 @@ def parserUnificado():
 
 
 
-    input_string = 'int a = 7 ;'  # Ejemplo de cadena de entrada
+    #input_string = 'int a = 7 ;'  # Ejemplo de cadena de entrada
 
     ll1_parser.handle(input_string)
     ll1_parser._successor.handle(input_string)
 
-parserUnificado()    
+#parserUnificado()    
 
 
