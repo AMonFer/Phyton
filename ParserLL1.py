@@ -1,103 +1,73 @@
 from Stack import Stack
-from ParsingTable import ParsingTable
-from LanguageProductions import productions
-from LanguageTokens import Token
-from Production import Production
-from ParsingTable import get_first
 
+#from ChainOfResp import tokenize
 
-class Parser:
-    def __init__(self, parsing_table):
-        self.parsing_table = parsing_table
-        self.stack = Stack()
+def ll1_parser(tokens):
+    
+    ll1_table = {
+    'Declaration': {'Datatype': ['Datatype', 'Assignment']},
+    'Assignment': {'Identifier': ['Identifier', 'Assignment1', 'Expression', 'SemiColon']},
+    'Assignment1': {
+        'NormalAssignment': ['NormalAssignment'],
+        'IncrementAssignment': ['IncrementAssignment'],
+        'DecrementAssignment': ['DecrementAssignment']
+    },
+    'Expression': {
+        'Integer': ['Value'],
+        'AdditionOperator': ['Value', 'UnaryOperator'],  
+        'BinaryOperator': ['Value', 'Expression1']
+    },
+    'Expression1': {
+        'BinaryOperator': ['BinaryOperator', 'Value', 'Expression1'],
+    },
+    'UnaryOperator': {
+        'IncrementOperator': ['IncrementOperator'],
+        'DecrementOperator': ['DecrementOperator'],
+    },
+    'Value': {
+        'Integer': ['Integer'],
+        'Geminus': ['Geminus'],
+        'Ingenium': ['Ingenium'],
+        'Chorda': ['Chorda']
+    }
+}
+    stack = ['Declaration']
+    token_index = 0
 
-    def find_production_for_token(self, token):
-        for production in productions:
-            first_set = get_first(production)
-            for item in first_set:
-                if isinstance(item, str):
-                    if token == item:
-                        return production
-                elif isinstance(item, Token) and item.name == token:
-                    return production
-        return None
+    while stack and token_index < len(tokens):
+        top = stack.pop()
+        current_token = tokens[token_index]
+        print(f"Stack Top: {top}, Current Token: {current_token.name}")
 
-    def parse(self, tokens):
-        first_token = tokens[0]
-        initial_production = self.find_production_for_token(first_token)
-        if initial_production is None:
-            print(f"Error: No production found for token {first_token}")
-            return False
-
-        self.stack.push(initial_production)
-        index = 0
-
-        while not self.stack.is_empty() and index < len(tokens):
-            top = self.stack.peek()
-            current_token = tokens[index]
-
-            print(f"Top of stack: {top}, Current token: {current_token}")
-
-            if isinstance(top, Token):
-                if top.name == current_token.name:
-                    print(f"Matched token: {current_token}")
-                    self.stack.pop()
-                    index += 1
-                else:
-                    return False
-            elif isinstance(top, Production):
-                if current_token.name in self.parsing_table.table.get(top.name, {}):
-                    production = self.parsing_table.table[top.name][current_token.name]
-                    print(f"Reducing using production: {production.name}")
-                    self.stack.pop()
-
-                    elements_to_push = []
-                    if production.terminals:
-                        elements_to_push.extend(production.terminals)
-                    if production.non_terminals:
-                        elements_to_push.extend(production.non_terminals)
-
-                    for place, element, alternative in reversed(elements_to_push):
-                        if isinstance(element, str):
-                            self.stack.push(Token(element, element))
-                        elif element:
-                            self.stack.push(element)
-                        print(f"Pushed {element} to stack")
-                else:
-                    print(f"Error: No production found for {current_token.name} in {top.name}")
-                    return False
-            elif isinstance(top, str):
-                if top == current_token.name:
-                    print(f"Matched terminal: {current_token}")
-                    self.stack.pop()
-                    index += 1
-                else:
-                    print(f"Error: Expected {top}, found {current_token.name}")
-                    return False
+        if top in ll1_table:  # No-terminal
+            if current_token.name in ll1_table[top]:
+                print(f"Expanding: {top} with {ll1_table[top][current_token.name]}")
+                stack.extend(reversed(ll1_table[top][current_token.name]))
             else:
-                print(f"Error: Unexpected item at top of stack: {top}")
+                print(f"No matching rule for {current_token.name} under {top}")
+                return False
+        else:  # Terminal
+            if top == current_token.name:
+                print("Matched terminal, moving to next token.")
+                token_index += 1
+            else:
+                print(f"Expected {top}, found {current_token.name}")
                 return False
 
-        if index < len(tokens):
-            print("Error: Unprocessed tokens remaining")
+        if token_index >= len(tokens) and stack:
+            print("Tokens exhausted but stack not empty.")
             return False
 
-        if not self.stack.is_empty():
-            print("Error: Stack is not empty after parsing all tokens")
-            return False
+    print("Final stack status:", stack)
+    print("Final token index:", token_index)
 
-        return True
+    
+    return not stack and token_index == len(tokens)
 
 
-parsing_table = ParsingTable(productions)
-
-tokens = [
-    Token("Datatype", "int"),
-    Token("Identifier", "x"),
-    Token("Assignment", "="),
-    Token("Integer", "10"),
-    Token("Symbol", ";")
-]
-
-parser = Parser(parsing_table)
-result = parser.parse(tokens)
+'''input_string = "int a = 10;"
+tokens = tokenize(input_string)
+for token in tokens:
+    print(f"Token Type: {token.name}, Token Value: {token.value}")
+result = ll1_parser(tokens)
+print("Parsing successful:", result)'''

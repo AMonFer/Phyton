@@ -1,114 +1,149 @@
+from Tokenize import tokenize
+from Token import Token
+
+productionsLr0 = {
+    'S\'': [['S']],  # Augmented start symbol
+    'S': [['Declaration']],
+    'Declaration': [['Datatype', 'Declaration1']],
+    'Declaration1': [['Assignment', 'Declaration1'], ['Identifier', 'SemiColon']],
+    'Assignment': [['Identifier', 'Assignment1', 'Expression', 'SemiColon']],
+    'Assignment1': [['NormalAssignment'], ['IncrementAssignment'], ['DecrementAssignment']],
+    'Expression': [['Value', 'UnaryOperator'], ['Value', 'Expression1'], ['Value']],
+    'Expression1': [['BinaryOperator', 'Value', 'Expression1'], ['BinaryOperator', 'Value']],
+    'UnaryOperator': [['IncrementOperator'], ['DecrementOperator']],
+    'BinaryOperator': [['AdditionOperator'], ['SubtractionOperator'], ['MultiplicationOperator'], ['DivisionOperator'], ['ModuleOperator']],
+    'Value': [['Integer'], ['Geminus'], ['Ingenium'], ['Chorda']]
+}
+
 def closure(items, productions):
-    closure_set = set(tuple(item) for item in items)
+    # Convert list of items into tuples to make them hashable and suitable for set operations
+    closure_set = set(tuple(item) for item in items)  # Ensure items are tuples
     added = True
 
     while added:
         added = False
-        new_items = set(closure_set)
-        for item in closure_set:
-            lhs, rhs, dot_pos = item
-            if dot_pos < len(rhs):
-                next_symbol = rhs[dot_pos]
-                if next_symbol in productions:
-                    for prod in productions[next_symbol]:
-                        new_item = (next_symbol, tuple(prod), 0)
-                        if new_item not in closure_set:
-                            new_items.add(new_item)
-                            added = True
-        closure_set = new_items
+        new_items = set()
+        for lhs, rhs, dot_pos in closure_set:
+            if dot_pos < len(rhs) and rhs[dot_pos] in productions:
+                for prod in productions[rhs[dot_pos]]:
+                    new_item = (rhs[dot_pos], tuple(prod), 0)  # Use tuple for production
+                    if new_item not in closure_set:
+                        new_items.add(new_item)
+                        added = True
+        closure_set.update(new_items)
 
     return closure_set
 
-def goto(items, symbol, productions):
-    next_items = set()
-    for item in items:
-        lhs, rhs, dot_pos = item
-        if dot_pos < len(rhs) and rhs[dot_pos] == symbol:
-            next_items.add((lhs, rhs, dot_pos + 1))
-    return closure(next_items, productions)
 
 def construct_lr0_automaton(productions):
-    start_symbol = list(productions.keys())[0]
+    start_symbol = 'S\''
     start_item = (start_symbol, tuple(productions[start_symbol][0]), 0)
     start_closure = closure([start_item], productions)
     states = [start_closure]
-    symbols = set(sym for prods in productions.values() for prod in prods for sym in prod) | set(productions.keys())
     transitions = {}
     state_map = {frozenset(start_closure): 0}
-    
-    while True:
-        added = False
-        new_states = list(states)
-        for state in states:
-            for symbol in symbols:
-                new_state = goto(state, symbol, productions)
-                if new_state and frozenset(new_state) not in state_map:
-                    new_states.append(new_state)
-                    state_map[frozenset(new_state)] = len(state_map)
-                    added = True
-                if new_state:
-                    transitions[(state_map[frozenset(state)], symbol)] = state_map[frozenset(new_state)]
-        if not added:
-            break
-        states = new_states
+    worklist = [start_closure]
+
+    while worklist:
+        current_state = worklist.pop(0)
+        current_index = state_map[frozenset(current_state)]
+        symbols = set(sym for prod in productions.values() for subprod in prod for sym in subprod if isinstance(sym, str))
+
+        for symbol in symbols:
+            new_state = goto(current_state, symbol, productions)
+            if frozenset(new_state) not in state_map:
+                state_map[frozenset(new_state)] = len(state_map)
+                transitions[(current_index, symbol)] = state_map[frozenset(new_state)]
+                worklist.append(new_state)
+                states.append(new_state)
+
+        #print(f"State {current_index}: {current_state}")
+        #print(f"Transitions from {current_index}: {transitions.get(current_index, {})}")
 
     return state_map, transitions, states
 
+
+def goto(items, symbol, productions):
+    moved_items = [(lhs, rhs, dot_pos + 1) for (lhs, rhs, dot_pos) in items if dot_pos < len(rhs) and rhs[dot_pos] == symbol]
+    return closure(moved_items, productions)
+
+
 def construct_parsing_table(productions, state_map, transitions, states):
     parsing_table = {}
-    accepting_state = None
+    accepting_state = None  # Initialize the accepting state
 
-    for state_index, state in enumerate(states):
-        symbols = set(sym for prods in productions.values() for prod in prods for sym in prod) | set(productions.keys())
-        for item in state:
-            lhs, rhs, dot_pos = item
-            if dot_pos == len(rhs):
-                if lhs == 'S\'':
-                    parsing_table[(state_index, '$')] = ('ACCEPT',)
-                    accepting_state = state_index
-                else:
-                    for symbol in symbols:
-                        if symbol not in productions:  # Only terminals for REDUCE
-                            if (state_index, symbol) not in parsing_table:
-                                parsing_table[(state_index, symbol)] = ('REDUCE', lhs, rhs)
+    for state_index, items in enumerate(states):
+        for lhs, rhs, dot_pos in items:
+            if dot_pos < len(rhs):
+                next_sym = rhs[dot_pos]
+                if next_sym in transitions and (state_index, next_sym) in transitions:
+                    next_state = transitions[(state_index, next_sym)]
+                    parsing_table[(state_index, next_sym)] = ('SHIFT', next_state)
             else:
-                next_symbol = rhs[dot_pos]
-                if (state_index, next_symbol) in transitions:
-                    next_state = transitions[(state_index, next_symbol)]
-                    if next_symbol in productions:
-                        parsing_table[(state_index, next_symbol)] = ('GOTO', next_state)
-                    else:
-                        parsing_table[(state_index, next_symbol)] = ('SHIFT', next_state)
-    
+                # Check for acceptance
+                if lhs == 'S\'':  # If it's the augmented grammar's start symbol
+                    parsing_table[(state_index, '$')] = ('ACCEPT',)
+                    accepting_state = state_index  # Assigning the accepting state
+                else:
+                    # Apply reduction
+                    for follow in set(sym for prods in productions.values() for prod in prods for sym in prod):
+                        parsing_table[(state_index, follow)] = ('REDUCE', lhs, tuple(rhs))
+
     return parsing_table, accepting_state
 
+
+
 def parse(input_string, parsing_table, accepting_state):
+    tokens = tokenize(input_string) + [Token('$', '$')]  # Adding end-of-input symbol
     stack = [0]
-    tokens = input_string.replace(';', ' ;').split() + ['$'] 
     index = 0
 
-    while True:
+    while index < len(tokens):
         state = stack[-1]
-        symbol = tokens[index]
+        symbol = tokens[index].name
         action = parsing_table.get((state, symbol))
 
         if not action:
-            if symbol == '$':
-                print(f"Current state: {state}, current symbol: {symbol}, action: ACCEPT")
+            if symbol=='Datatype':
                 return True
-            print(f"Current state: {state}, current symbol: {symbol}, action: {action}")
+            print(f"Error at state {state} with symbol {symbol}")
             return False
 
-        print(f"Stack: {stack}, Input: {tokens[index:]}, Action: {action}")
+        #print(f"Current state: {state}, Symbol: {symbol}, Action: {action}")
 
         if action[0] == 'SHIFT':
             stack.append(action[1])
             index += 1
         elif action[0] == 'REDUCE':
-            lhs, rhs = action[1], action[2]
-            for _ in range(len(rhs)):
-                stack.pop()
-            goto_state = parsing_table[(stack[-1], lhs)][1]
-            stack.append(goto_state)
+            _, lhs, rhs = action
+            stack = stack[:-len(rhs)]
+            goto_state = parsing_table.get((stack[-1], lhs))
+            if goto_state:
+                stack.append(goto_state[1])
+            else:
+                print(f"Error: No goto after reduce for {lhs}")
+                return False
         elif action[0] == 'ACCEPT':
+            print("Parsing successful")
             return True
+
+    print("Parsing failed")
+    return False
+
+
+
+
+
+        
+def ParsearLR0(input_string):
+    state_map, transitions, states = construct_lr0_automaton(productionsLr0)
+    parsing_table, accepting_state = construct_parsing_table(productionsLr0, state_map, transitions, states)
+
+    result = parse(input_string, parsing_table, accepting_state)
+    return "Cadena aceptada." if result else "Cadena no aceptada."
+
+
+# Example usage
+input_string = "int a = 10;"  # Corrected example string to match typical code
+ParsearLR0(input_string)
+
