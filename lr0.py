@@ -1,6 +1,7 @@
 from Tokenize import tokenize
 from Token import Token
 
+
 productionsLr0 = {
     'S\'': [['S']],  # Augmented start symbol
     'S': [['Declaration']],
@@ -14,6 +15,7 @@ productionsLr0 = {
     'BinaryOperator': [['AdditionOperator'], ['SubtractionOperator'], ['MultiplicationOperator'], ['DivisionOperator'], ['ModuleOperator']],
     'Value': [['Integer'], ['Geminus'], ['Ingenium'], ['Chorda']]
 }
+
 
 def closure(items, productions):
     # Convert list of items into tuples to make them hashable and suitable for set operations
@@ -57,8 +59,8 @@ def construct_lr0_automaton(productions):
                 worklist.append(new_state)
                 states.append(new_state)
 
-        #print(f"State {current_index}: {current_state}")
-        #print(f"Transitions from {current_index}: {transitions.get(current_index, {})}")
+        # print(f"State {current_index}: {current_state}")
+        # print(f"Transitions from {current_index}: {transitions.get(current_index, {})}")
 
     return state_map, transitions, states
 
@@ -92,7 +94,6 @@ def construct_parsing_table(productions, state_map, transitions, states):
     return parsing_table, accepting_state
 
 
-
 def parse(input_string, parsing_table, accepting_state):
     tokens = tokenize(input_string) + [Token('$', '$')]  # Adding end-of-input symbol
     stack = [0]
@@ -104,13 +105,12 @@ def parse(input_string, parsing_table, accepting_state):
         action = parsing_table.get((state, symbol))
 
         if not action:
-            if symbol=='Datatype':
+            if symbol == 'Datatype':
                 return True
-            print(f"Error at state {state} with symbol {symbol}")
+            # print(f"Error at state {state} with symbol {symbol}")
             return False
 
-        #print(f"Current state: {state}, Symbol: {symbol}, Action: {action}")
-
+        # print(f"Current state: {state}, Symbol: {symbol}, Action: {action}")
         if action[0] == 'SHIFT':
             stack.append(action[1])
             index += 1
@@ -129,10 +129,6 @@ def parse(input_string, parsing_table, accepting_state):
 
     print("Parsing failed")
     return False
-
-
-
-
 
         
 def ParsearLR0(input_string):

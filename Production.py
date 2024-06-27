@@ -44,10 +44,12 @@ class Production:
             self.non_terminals = []
 
         if self.__place_exists_in_non_terminals(place):
-            raise NotImplementedError()  # Raise exception when place already exists
+            # Raise exception when place already exists
+            raise RuntimeError(f"Can't add production at place: {place} as it already exists")
 
         if self.__place_exists_in_terminals(place):
-            raise NotImplementedError()  # Raise exception when place already exists
+            # Raise exception when place already exists
+            raise RuntimeError(f"Can't add terminal at place: {place} as it already exists")
 
         if len(args) == 0:
             self.non_terminals.append((place, non_terminal, None))
@@ -71,4 +73,5 @@ class Production:
         if isinstance(other, Production):
             return self.name == other.name
 
-        raise NotImplementedError() # raise when not comparing with a Production
+        # raise when not comparing with a Production
+        raise RuntimeError(f"Can't compare a production with a {type(other)}")

@@ -1,9 +1,11 @@
 from Token import *
 import re
+
+
 def tokenize(input_string):
     tokens = []
     token_specification = [
-        ('Datatype', r'\bint\b'),           # Datatype keyword
+        ('Datatoken_type', r'\bint\b'),           # Datatoken_type keyword
         ('Identifier', r'\b[a-zA-Z_][a-zA-Z0-9_]*\b'),  # Identifiers
         ('NormalAssignment', r'\='),        # Assignment operator
         ('IncrementAssignment', r'\+='),
@@ -18,12 +20,12 @@ def tokenize(input_string):
     while position < len(input_string):
         match = get_token(input_string, position)
         if match:
-            type = match.lastgroup
+            token_type = match.lastgroup
             value = match.group()
-            if type != 'Whitespace':
-                if type == 'Identifier' and value == 'int':
-                    type = 'Datatype'  # Correcting classification for 'int'
-                tokens.append(Token(type, value))
+            if token_type != 'Whitespace':
+                if token_type == 'Identifier' and value == 'int':
+                    token_type = 'Datatoken_type'  # Correcting classification for 'int'
+                tokens.append(Token(token_type, value))
             position = match.end()
         else:
             raise RuntimeError('Unexpected character: {}'.format(input_string[position]))
